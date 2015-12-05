@@ -2,7 +2,7 @@ import { ID } from './constants';
 
 let id = 0;
 
-const types = {}
+const types = {};
 
 const identity = arg => arg;
 
@@ -57,9 +57,9 @@ export default function createAction(description, payloadReducer, metaReducer) {
     }
   }
 
-  actionCreator.toString = ()=> action.id;
+  actionCreator.toString = () => action.id;
 
-  actionCreator.bindTo = (stores)=> {
+  actionCreator.bindTo = stores => {
     actionStores = stores;
     return actionCreator;
   };

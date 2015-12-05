@@ -33,7 +33,7 @@ export default function createReducer(handlers = {}, defaultState) {
     } else {
       return state;
     }
-  };
+  }
 
   reduce.on = on;
   reduce.off = off;

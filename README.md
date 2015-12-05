@@ -38,9 +38,9 @@ const [increment, decrement] = ['inc', 'dec'].map(createAction);
 // Create a reducer
 // (ES6 syntax, see Advanced usage below for an alternative for ES5)
 const counterReducer = createReducer({
-  [increment]: (state)=> state + 1,
-  [decrement]: (state)=> state - 1,
-  [add]: (state, payload)=> state + payload
+  [increment]: state => state + 1,
+  [decrement]: state => state - 1,
+  [add]: (state, payload) => state + payload
 }, 0); // <-- This is the default state
 
 // Create the store
@@ -84,13 +84,13 @@ const replace = createAction();
 // when you call the action. If you need to support several arguments,
 // you can specify a function on how to merge all arguments into
 // an unique payload.
-const append = createAction('optional description', (...args)=> args.join(''));
+const append = createAction('optional description', ...args => args.join(''));
 
 // There is another pattern to create reducers
 // and it works fine with ES5! (maybe even ES3 \o/)
 const stringReducer = createReducer(function (on) {
-  on(append, (state, payload)=> state += payload);
-  on(replace, (state, payload)=> payload);
+  on(append, (state, payload) => state += payload);
+  on(replace, (state, payload) => payload);
   // Warning! If you use the same action twice,
   // the second one will override the previous one.
 }, 'missing a lette'); // <-- Default state
@@ -116,11 +116,11 @@ doSomething(1); // {__id__: 'STRING_CONSTANT', type: 'STRING_CONSTANT', payload:
 
 // Little bonus, if you need to support metadata around your action,
 // like needed data but not really part of the payload, you add a second function
-const metaAction = createAction('desc', arg => arg, arg => {meta: 'so meta!'});
+const metaAction = createAction('desc', arg => arg, arg => { meta: 'so meta!' });
 
 // Metadata will be the third argument of the reduce function
 createReducer({
-  [metaAction]: (state, payload, meta)=> payload
+  [metaAction]: (state, payload, meta) => payload
 });
 ```
 
@@ -144,9 +144,9 @@ const simpleAction = createAction();
 // Better to add a description
 const betterAction = createAction('This is better!');
 // Support multiple arguments by merging them
-const multipleAction = createAction((text, checked)=> ({text, checked}))
+const multipleAction = createAction((text, checked) => ({text, checked}))
 // Again, better to add a description
-const bestAction = createAction('Best. Action. Ever.', (text, checked)=> ({text, checked}))
+const bestAction = createAction('Best. Action. Ever.', (text, checked) => ({text, checked}))
 // Serializable action
 const serializableAction = createAction('SERIALIZABLE_ACTION');
 ```
@@ -163,7 +163,7 @@ const addTodo = createAction('Add todo');
 addTodo('content');
 // return { __id__: 1, type: '[1] Add todo', payload: 'content' }
 
-const editTodo = createAction('Edit todo', (id, content)=> ({id, content}));
+const editTodo = createAction('Edit todo', (id, content) => ({id, content}));
 editTodo(42, 'the answer');
 // return { __id__: 2, type: '[2] Edit todo', payload: {id: 42, content: 'the answer'} }
 
@@ -177,7 +177,7 @@ Remember that you still need to dispatch those actions. If you already have one 
 ```javascript
 const action = createAction();
 const reducer = createReducer({
-  [action]: (state)=> state * 2
+  [action]: state => state * 2
 });
 const store = createStore(reducer, 1);
 const store2 = createStore(reducer, -1);
@@ -214,14 +214,14 @@ const add = createAction();
 
 // First pattern
 const reducerMap = createReducer({
-  [increment]: (state)=> state + 1,
-  [add]: (state, payload)=> state + payload
+  [increment]: state => state + 1,
+  [add]: (state, payload) => state + payload
 }, 0);
 
 // Second pattern
 const reducerFactory = createReducer(function (on) {
-  on(increment, (state)=> state + 1);
-  on(add, (state, payload)=> state + payload);
+  on(increment, state => state + 1);
+  on(add, (state, payload) => state + payload);
 }, 0);
 ```
 
@@ -231,8 +231,8 @@ Since an action is an object with some metadata (`__id__` and `type`) and a `pay
 const add = createAction();
 const sub = createAction();
 const reducer = createReducer({
-  [add]: (state, action)=> state + action.payload,
-  [sub]: (state, action)=> state - action.payload
+  [add]: (state, action) => state + action.payload,
+  [sub]: (state, action) => state - action.payload
 }, 0);
 
 reducer.options({
@@ -249,7 +249,7 @@ const reducer = createReducer(handlers, 0);
 const store = createStore(reducer);
 
 const increment = createAction().bindTo(store);
-handlers[increment] = (state)=> state + 1;
+handlers[increment] = state => state + 1;
 
 increment(); // store.getState() === 1
 increment(); // store.getState() === 2
@@ -266,7 +266,7 @@ const reducer = createReducer({}, 0);
 const store = createStore(reducer);
 const increment = createAction().bindTo(store);
 
-reducer.on(increment, (state)=> state + 1);
+reducer.on(increment, state => state + 1);
 
 increment(); // store.getState() === 1
 increment(); // store.getState() === 2
@@ -296,8 +296,8 @@ export const sub = createAction('Sub');
 // reducer.js
 import * as actions from './actions';
 export default createReducer({
-  [actions.add]: (state, payload)=> state + payload,
-  [actions.sub]: (state, payload)=> state - payload
+  [actions.add]: (state, payload) => state + payload,
+  [actions.sub]: (state, payload) => state - payload
 }, 0);
 
 // store.js
@@ -323,8 +323,8 @@ const start = createAction();
 const success = createAction();
 
 const reducer = createReducer({
-  [start]: (state)=> ({ ...state, running: true }),
-  [success]: (state, result)=> ({ running: false, result })
+  [start]: state => ({ ...state, running: true }),
+  [success]: (state, result) => ({ running: false, result })
 }, {
   running: false,
   result: false
@@ -338,20 +338,18 @@ const createStoreWithMiddleware = applyMiddleware(
 
 const store = createStoreWithMiddleware(reducer);
 
-function fetch() {
+const fetch = () => {
   // We don't really need the dispatch
   // but here it is if you don't bind your actions
-  return function (dispatch) {
+  return dispatch => {
     // state: { running: false, result: false }
     dispatch(start());
     // state: { running: true, result: false }
     return new Promise(resolve => {
       // Here, you should probably do a real async call,
       // like, you know, XMLHttpRequest or Global.fetch stuff
-      setTimeout(()=>
-        resolve(1)
-      , 5);
-    }).then(result=>
+      setTimeout(() => resolve(1), 5);
+    }).then(result =>
       dispatch(success(result))
       // state: { running: false, result: 1 }
     );
@@ -369,23 +367,21 @@ const store = createStore(reducer);
 start.bindTo(store);
 success.bindTo(store);
 
-function fetch() {
+const fetch = () => {
   // state: { running: false, result: false }
   start();
   // state: { running: true, result: false }
   return new Promise(resolve => {
     // Here, you should probably do a real async call,
     // like, you know, XMLHttpRequest or Global.fetch stuff
-    setTimeout(()=>
-      resolve(1)
-    , 5);
-  }).then(result=>
+    setTimeout(() => resolve(1), 5);
+  }).then(result =>
     success(result)
     // state: { running: false, result: 1 }
   );
 }
 
-fetch().then(()=> {
+fetch().then(() => {
   // state: { running: false, result: 1 }
 });
 ```
