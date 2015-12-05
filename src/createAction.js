@@ -1,59 +1,62 @@
 import { ID } from './constants';
+import constantCase from 'constant-case';
+import invariant from 'invariant';
 
 let id = 0;
 
 const types = {};
 
 const identity = arg => arg;
+const undef = () => {};
+const is = typeName => mayBe => typeof mayBe === typeName;
+const isFunction = is('function');
+const isString = is('string');
 
-const undef = () => undefined;
+export default function createAction(type, payloadCreator, metaCreator) {
 
-export default function createAction(description, payloadReducer, metaReducer) {
-  if (typeof description === 'function') {
-    metaReducer = payloadReducer;
-    payloadReducer = description;
-    description = undefined;
+  if (isFunction(type)) {
+    metaCreator = payloadCreator;
+    payloadCreator = type;
+    type = isString(payloadCreator.name) ?
+      constantCase(payloadCreator.name) : undefined;
   }
 
-  if (typeof payloadReducer !== 'function') {
-    payloadReducer = identity;
+  if (!isFunction(payloadCreator)) {
+    payloadCreator = identity;
   }
 
-  if (typeof metaReducer !== 'function') {
-    metaReducer = undef;
+  if (!isFunction(metaCreator)) {
+    metaCreator = undef;
   }
 
-  const isSerializable = (typeof description === 'string') && /^[A-Z_]+$/.test(description);
+  const isSerializable = (isString(type)) && /^[A-Z_]+$/.test(type);
 
   if (isSerializable) {
-    if (types[description]) {
-      throw new TypeError(`Duplicate action type: ${description}`);
-    }
-
-    types[description] = true;
+    invariant(!type in types, 'Duplicate action type: %s', type);
+    types[type] = true;
   }
 
   const action = {
-    id: isSerializable ? description : ++id,
-    type: isSerializable ? description : `[${id}]${description ? ' ' + description : ''}`
+    id: isSerializable ? type : ++id,
+    type: isSerializable ? type : `[${id}]${type ? ' ' + type : ''}`
   };
 
   let actionStores = undefined;
 
   function actionCreator(...args) {
-    const payloaded = {
+    const payload = {
       [ID]: action.id,
       type: action.type,
-      payload: payloadReducer(...args),
-      meta: metaReducer(...args)
+      payload: payloadCreator(...args),
+      meta: metaCreator(...args)
     };
 
     if (Array.isArray(actionStores)) {
-      return actionStores.map(store=> store.dispatch(payloaded));
+      return actionStores.map(store => store.dispatch(payload));
     } else if (actionStores) {
-      return actionStores.dispatch(payloaded);
+      return actionStores.dispatch(payload);
     } else {
-      return payloaded;
+      return payload;
     }
   }
 
