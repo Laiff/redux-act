@@ -13,13 +13,13 @@ describe('createReducer', function () {
     sub = createAction();
 
     firstReducer = createReducer({
-      [increment]: (state)=> state + 1,
-      [add]: (state, payload)=> state + payload
+      [increment]: state => state + 1,
+      [add]: (state, payload) => state + payload
     }, 0);
 
     secondReducer = createReducer(function (on) {
-      on(decrement, (state)=> state - 1);
-      on(sub, (state, payload)=> state - payload);
+      on(decrement, state => state - 1);
+      on(sub, (state, payload) => state - payload);
     }, 42);
   });
 
@@ -80,7 +80,7 @@ describe('createReducer', function () {
     const reducer = createReducer(handlers, 0);
     const store = createStore(reducer);
     const inc = createAction().bindTo(store);
-    handlers[inc] = (state)=> state + 1;
+    handlers[inc] = state => state + 1;
 
     inc();
     expect(store.getState()).to.equal(1);
@@ -122,7 +122,7 @@ describe('createReducer', function () {
   it('should update its options', function () {
     const add = createAction();
     const reducer = createReducer({
-      [add]: (state, action)=> state + action.payload
+      [add]: (state, action) => state + action.payload
     }, 0);
     reducer.options({payload: false});
     const store = createStore(reducer);
@@ -133,7 +133,7 @@ describe('createReducer', function () {
     add(2);
     expect(store.getState()).to.equal(5);
 
-    reducer.on(add, (state, payload)=> state + payload);
+    reducer.on(add, (state, payload) => state + payload);
     reducer.options({payload: true});
 
     add(-4);
@@ -141,7 +141,7 @@ describe('createReducer', function () {
     add(10);
     expect(store.getState()).to.equal(11);
 
-    reducer.on(add, (state, action)=> state + action.payload);
+    reducer.on(add, (state, action) => state + action.payload);
     reducer.options({payload: false});
 
     add(30);
@@ -153,7 +153,7 @@ describe('createReducer', function () {
   it('should support meta', function () {
     const add = createAction(undefined, undefined, arg=> arg * 2);
     const reducer = createReducer({
-      [add]: (state, payload, meta)=> state + payload * meta
+      [add]: (state, payload, meta) => state + payload * meta
     }, 0);
     const store = createStore(reducer);
     add.bindTo(store);

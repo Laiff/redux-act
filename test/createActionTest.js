@@ -3,6 +3,7 @@ import {createStore, applyMiddleware} from 'redux';
 import thunkMiddleware from 'redux-thunk';
 import {createAction, createReducer} from '../src/index';
 import { ID } from '../src/constants';
+
 const expect = chai.expect;
 
 describe('createAction', function () {
@@ -17,8 +18,9 @@ describe('createAction', function () {
   function testAction(action, payload, description, meta) {
     expect(action).to.be.an('object');
     expect(action).to.contain.keys(ID, 'type', 'payload', 'meta');
-    expect(action[ID]).to.be.a('number');
+    expect(action[ID]).to.exist;
     expect(action.type).to.be.a('string');
+    expect(action.type).to.be.match(new RegExp(`${description || ''}$`));
     expect(action.payload).to.deep.equal(payload);
     if (typeof meta !== 'undefined') {
       expect(action.meta).to.deep.equal(meta);
@@ -29,7 +31,7 @@ describe('createAction', function () {
     expect(action).to.be.an('object');
     expect(action).to.contain.keys(ID, 'type', 'payload', 'meta');
     expect(action[ID]).to.equal(description);
-    expect(action.type).to.equal(description);
+    expect(action.type).to.contain(description);
     expect(action.payload).to.deep.equal(payload);
     if (typeof meta !== 'undefined') {
       expect(action.meta).to.deep.equal(meta);
@@ -39,15 +41,27 @@ describe('createAction', function () {
   it('should support all format', function () {
     const simple = createAction();
     const description = createAction('awesome description');
-    const args = createAction((num, text)=> ({one: num, text}));
-    const both = createAction('description', (id, content)=> ({id, content}));
-    const argsWithMeta = createAction((num, text)=> ({one: num, text}), (num, text) => ({more: num + 1, append: text + ' world'}));
-    const bothWithMeta = createAction('description meta', (id, content)=> ({id, content}), (id, content) => ({more: true, prepend: 'hello ' + content}));
+    const args = createAction((num, text) => ({one: num, text}));
+    const both = createAction('description', (id, content) => ({id, content}));
+    const awesome = content => ({content});
+    const named = createAction(awesome);
+    const argsWithMeta = createAction(
+      (num, text) => ({one: num, text}),
+      (num, text) => ({
+        more: num + 1,
+        append: text + ' world'
+      })
+    );
+    const bothWithMeta = createAction('description meta', (id, content) => ({
+      id,
+      content
+    }), (id, content) => ({more: true, prepend: 'hello ' + content}));
 
     testActionCreator(simple);
     testActionCreator(description);
     testActionCreator(args);
     testActionCreator(both);
+    testActionCreator(named);
     testActionCreator(argsWithMeta);
     testActionCreator(bothWithMeta);
 
@@ -55,6 +69,7 @@ describe('createAction', function () {
     const descriptionAction = description(true);
     const argsAction = args(4, 'hello');
     const bothAction = both(2, 'world');
+    const namedAction = named('world');
     const argsWithMetaAction = argsWithMeta(4, 'hello');
     const bothWithMetaAction = bothWithMeta(2, 'world');
 
@@ -62,15 +77,22 @@ describe('createAction', function () {
     testAction(descriptionAction, true, 'awesome description');
     testAction(argsAction, {one: 4, text: 'hello'});
     testAction(bothAction, {id: 2, content: 'world'}, 'description');
+    testAction(namedAction, {content: 'world'}, 'AWESOME');
     testAction(argsWithMetaAction, {one: 4, text: 'hello'}, undefined, {more: 5, append: 'hello world'});
     testAction(bothWithMetaAction, {id: 2, content: 'world'}, 'description meta', {more: true, prepend: 'hello world'});
   });
 
   it('should support all format with serializable syntax', function () {
     const description = createAction('DESCRIPTION_ACTION');
-    const args = createAction('ARGS_ACTION', (num, text)=> ({one: num, text}));
-    const both = createAction('BOTH_ACTION', (id, content)=> ({id, content}));
-    const meta = createAction('META_ACTION', (id, content)=> ({id, content}), (id, content) => ({more: true, prepend: 'hello ' + content}));
+    const args = createAction('ARGS_ACTION', (num, text) => ({ one: num, text }));
+    const both = createAction('BOTH_ACTION', (id, content) => ({ id, content }));
+    const meta = createAction('META_ACTION',
+      (id, content) => ({ id, content }),
+      (id, content) => ({
+        more: true,
+        prepend: 'hello ' + content
+      })
+    );
 
     testActionCreator(description);
     testActionCreator(args);
@@ -111,7 +133,7 @@ describe('createAction', function () {
   });
 
   it('should create a second action creator', function () {
-    secondAction = createAction('second action', (one, two, three)=> ({one, two, three: three.join(', ')}));
+    secondAction = createAction('second action', (one, two, three) => ({one, two, three: three.join(', ')}));
     testActionCreator(secondAction);
   });
 
@@ -127,11 +149,11 @@ describe('createAction', function () {
 
   it('should dispatch actions', function () {
     reducer = createReducer({
-      [firstAction]: (state, payload)=> {
+      [firstAction]: (state, payload) => {
         state.first += payload;
         return state;
       },
-      [secondAction]: (state, payload)=> {
+      [secondAction]: (state, payload) => {
         state.second += '' + payload.one + payload.two + payload.three + ' - ';
         return state;
       }
@@ -177,7 +199,7 @@ describe('createAction', function () {
     const reducer = createReducer(actions, 0);
     const store = createStore(reducer);
     const action = createAction().bindTo(store);
-    actions[action] = (state)=> state + 1;
+    actions[action] = state => state + 1;
 
     action();
     expect(store.getState()).to.equal(1);
@@ -192,8 +214,8 @@ describe('createAction', function () {
     const success = createAction();
 
     const reducer = createReducer({
-      [start]: (state)=> ({ ...state, running: true }),
-      [success]: (state, result)=> ({ running: false, result })
+      [start]: state => ({...state, running: true}),
+      [success]: (state, result) => ({running: false, result})
     }, {
       running: false,
       result: false
@@ -206,7 +228,7 @@ describe('createAction', function () {
 
     function fetch() {
       start();
-      setTimeout(()=> {
+      setTimeout(() => {
         expect(store.getState().running).to.be.true;
         expect(store.getState().result).to.be.false;
         success(1);
@@ -228,8 +250,8 @@ describe('createAction', function () {
     const success = createAction();
 
     const reducer = createReducer({
-      [start]: (state)=> ({ ...state, running: true }),
-      [success]: (state, result)=> ({ running: false, result })
+      [start]: state => ({...state, running: true}),
+      [success]: (state, result) => ({running: false, result})
     }, {
       running: false,
       result: false
@@ -247,9 +269,7 @@ describe('createAction', function () {
       return function (dispatch) {
         dispatch(start());
         return new Promise(resolve => {
-          setTimeout(()=>
-            resolve(1)
-          , 5);
+          setTimeout(() => resolve(1), 5);
         }).then(result=>
           dispatch(success(result))
         );
@@ -259,7 +279,7 @@ describe('createAction', function () {
     expect(store.getState().running).to.be.false;
     expect(store.getState().result).to.be.false;
 
-    store.dispatch(fetch()).then(()=> {
+    store.dispatch(fetch()).then(() => {
       expect(store.getState().running).to.be.false;
       expect(store.getState().result).to.equal(1);
       done();
@@ -274,8 +294,8 @@ describe('createAction', function () {
     const success = createAction();
 
     const reducer = createReducer({
-      [start]: (state)=> ({ ...state, running: true }),
-      [success]: (state, result)=> ({ running: false, result })
+      [start]: state => ({...state, running: true}),
+      [success]: (state, result) => ({running: false, result})
     }, {
       running: false,
       result: false
@@ -289,9 +309,7 @@ describe('createAction', function () {
     function fetch() {
       start();
       return new Promise(resolve => {
-        setTimeout(()=>
-          resolve(1)
-        , 5);
+        setTimeout(() => resolve(1), 5);
       }).then(result=>
         success(result)
       );
@@ -300,7 +318,7 @@ describe('createAction', function () {
     expect(store.getState().running).to.be.false;
     expect(store.getState().result).to.be.false;
 
-    fetch().then(()=> {
+    fetch().then(() => {
       expect(store.getState().running).to.be.false;
       expect(store.getState().result).to.equal(1);
       done();

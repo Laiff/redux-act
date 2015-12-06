@@ -14,9 +14,9 @@ describe('README', function () {
 
     // Create a reducer
     const counterReducer = createReducer({
-      [increment]: (state)=> state + 1,
-      [decrement]: (state)=> state - 1,
-      [add]: (state, payload)=> state + payload
+      [increment]: state => state + 1,
+      [decrement]: state => state - 1,
+      [add]: (state, payload) => state + payload
     }, 0); // <-- This is the default state
 
     // Create the store
@@ -43,12 +43,12 @@ describe('README', function () {
     // when you call the action. If you need to support several arguments,
     // you can specify a function on how to merge all arguments into
     // an unique payload.
-    const append = createAction('optional description', (...args)=> args.join(''));
+    const append = createAction('optional description', (...args) => args.join(''));
 
     // There is another pattern to create reducers
     const stringReducer = createReducer(function (on) {
-      on(append, (state, payload)=> state += payload);
-      on(replace, (state, payload)=> state = payload);
+      on(append, (state, payload) => state += payload);
+      on(replace, (state, payload) => state = payload);
       // Warning! If you use the same action twice,
       // the second one will override the previous one.
     }, 'missing a lette'); // <-- Default state
@@ -79,7 +79,7 @@ describe('README', function () {
     expect(addTodoAction.type).to.be.a('string');
     expect(addTodoAction.payload).to.deep.equal('content');
 
-    const editTodo = createAction('Edit todo', (id, content)=> ({id, content}));
+    const editTodo = createAction('Edit todo', (id, content) => ({id, content}));
     editTodo(42, 'the answer');
     // return { __id__: 2, type: '[2] Edit todo', payload: {id: 42, content: 'the answer'} }
     const editTodoAction = editTodo(42, 'the answer');
@@ -97,7 +97,7 @@ describe('README', function () {
 
     const action = createAction();
     const reducer = createReducer({
-      [action]: (state)=> state * 2
+      [action]: state => state * 2
     });
     const store = createStore(reducer, 1);
     const store2 = createStore(reducer, -1);
@@ -126,14 +126,14 @@ describe('README', function () {
 
     // First pattern
     const reducerMap = createReducer({
-      [increment]: (state)=> state + 1,
-      [add]: (state, payload)=> state + payload
+      [increment]: state => state + 1,
+      [add]: (state, payload) => state + payload
     }, 0);
 
     // Second pattern
     const reducerFactory = createReducer(function (on) {
-      on(increment, (state)=> state + 1);
-      on(add, (state, payload)=> state + payload);
+      on(increment, state => state + 1);
+      on(add, (state, payload) => state + payload);
     }, 0);
   });
 
@@ -143,7 +143,7 @@ describe('README', function () {
     const store = createStore(reducer);
 
     const increment = createAction().bindTo(store);
-    handlers[increment] = (state)=> state + 1;
+    handlers[increment] = state => state + 1;
 
     increment(); // store.getState() === 1
     expect(store.getState()).to.equal(1);
@@ -166,7 +166,7 @@ describe('README', function () {
     const store = createStore(reducer);
     const increment = createAction().bindTo(store);
 
-    reducer.on(increment, (state)=> state + 1);
+    reducer.on(increment, state => state + 1);
 
     increment(); // store.getState() === 1
     expect(store.getState()).to.equal(1);

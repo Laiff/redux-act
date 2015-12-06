@@ -150,6 +150,24 @@ const bestAction = createAction('Best. Action. Ever.', (text, checked) => ({text
 // Serializable action
 const serializableAction = createAction('SERIALIZABLE_ACTION');
 ```
+```javascript
+// Another oportunity to create serializable action, that provide payload creator with name
+const loadAnyThing = id => ({id});
+const loadAnyThingAction = createAction(loadAnyThing);
+// This construction are full equivalent for this 
+const loadAnyThingAction = createAction('LOAD_ANY_THING', loadAnyThing);
+
+// This means that it's posibile to do so
+// @file load.js
+export const loadA = content => ({content}); 
+export const loadB = content => ({content}); 
+export const loadC = content => ({content}); 
+
+// in other file may be
+import * as actions from './load.js';
+
+export actions.map(createAction);
+```
 
 When calling an action creator, the returned object will have the following properties:
 

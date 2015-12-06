@@ -8,8 +8,8 @@ describe('bindAll', function () {
     const inc = createAction();
     const dec = createAction();
     const reducer = createReducer({
-      [inc]: (state)=> state + 1,
-      [dec]: (state)=> state - 1
+      [inc]: state => state + 1,
+      [dec]: state => state - 1
     }, 0);
     const store = createStore(reducer);
     const store2 = createStore(reducer);

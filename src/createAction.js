@@ -32,7 +32,7 @@ export default function createAction(type, payloadCreator, metaCreator) {
   const isSerializable = (isString(type)) && /^[A-Z_]+$/.test(type);
 
   if (isSerializable) {
-    invariant(!type in types, 'Duplicate action type: %s', type);
+    invariant(!types[type], 'Duplicate action type: %s', type);
     types[type] = true;
   }
 
